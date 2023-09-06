@@ -8,5 +8,11 @@
 <body>
     <h1> Your profile : </h1>
     name : <%= user.name %>
+    
+    <form action="/logout" method="get">
+        <button type="submit">
+            log out
+        </button>
+    </form>
 </body>
 </html>

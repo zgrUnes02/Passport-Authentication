@@ -4,7 +4,6 @@ const passport = require('passport');
 const router = express.Router() ;
 const passportSetup = require('../config/passport-setup.js') ;
 const mongoose = require('mongoose') ;
-const session = require('express-session') ;
 
 mongoose.connect('mongodb://localhost:27017/passport')
 .then(() => {
@@ -20,7 +19,13 @@ router.get('/' , (req , res) => {
 
 //* Get Login Page
 router.get('/login' , (req , res) => {
-    res.render('login') ;
+    if ( req.user ) {
+        res.redirect('/profile') ;
+    }
+    else {
+        res.render('login') ;
+    }
+    
 }) ;
 
 //* Send Data From The Form
@@ -28,22 +33,20 @@ router.post('/login' , (req , res) => {
     res.status(200).json({data : req.body}) ;
 }) ;
 
-//* profile 
+//* Profile
 router.get('/profile' , (req , res) => {
-    try {
-        console.log(req.session.user) ;
+    if ( req.user ) {
+        res.render('profile' , {user : req.user}) ;
     }
-    catch ( error ) {
-        res.status(200).json({error : error}) ;
+    else {
+        res.redirect('/login') ;
     }
-})
+}) ;
 
 //* Connect With google Account
 router.get('/auth/google' , passport.authenticate('google' , () => { scope : ['profile'] })) ;
 
 router.get('/auth/google/redirect' , passport.authenticate('google') ,  (req, res) => {
-    req.session.user = req.user ;
-    req.session.authorized = true ;
     res.redirect('/profile') ;
 }) ;
 
@@ -54,7 +57,13 @@ router.get('/facebook' , (req , res) => {
 
 //* Logout
 router.get('/logout' , (req , res) => {
-    res.status(200).send('logout') ;
+    if ( !req.user ) {
+        res.redirect('/login') ;
+    }
+    else {
+        req.logOut() ;
+        res.redirect('/login') ;
+    }
 }) ;
 
 //* Export My routes
